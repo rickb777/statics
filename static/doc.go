@@ -11,7 +11,7 @@ Embedding in Source Control
 
 	package main
 
-	import "github.com/go-playground/statics/static"
+	import "github.com/rickb777/statics/static"
 
 	// newStaticAssets initializes a new *static.Files instance for use
 	func newStaticAssets(config *static.Config) (*static.Files, error) {
@@ -25,7 +25,7 @@ Embedding in Source Control
 	just run go generate from the project root and the files will get embedded ready for
 	compilation.
 
-	Be sure to check out this packages best buddy https://github.com/go-playground/generate
+	Be sure to check out this packages best buddy https://github.com/rickb777/generate
 	to help get everything generated and ready for compilation.
 
 

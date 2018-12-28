@@ -8,28 +8,17 @@ import (
 	"testing"
 	"time"
 
-	. "gopkg.in/go-playground/assert.v1"
+	. "github.com/onsi/gomega"
 )
-
-// NOTES:
-// - Run "go test" to run tests
-// - Run "gocov test | gocov report" to report on test converage by file
-// - Run "gocov test | gocov annotate -" to report on all code and functions, those ,marked with "MISS" were never called
-//
-// or
-//
-// -- may be a good idea to change to output path to somewherelike /tmp
-// go test -coverprofile cover.out && go tool cover -html=cover.out -o cover.html
-//
 
 var testDirFile *DirFile
 
 func getGOPATH() string {
 	gopath := os.Getenv("GOPATH")
 
-	if len(gopath) == 0 {
-		panic("$GOPATH environment is not setup correctly, ending transmission!")
-	}
+	//if len(gopath) == 0 {
+	//	panic("$GOPATH environment is not setup correctly, ending transmission!")
+	//}
 
 	return gopath
 }
@@ -171,15 +160,16 @@ H4sIAAAJbogA/0pJLEnkAgQAAP//gsXB5gUAAAA=
 }
 
 func TestStaticNew(t *testing.T) {
+	g := NewGomegaWithT(t)
 
 	config := &Config{
 		UseStaticFiles: true,
-		AbsPkgPath:     "$GOPATH/src/github.com/go-playground/statics",
+		AbsPkgPath:     "$PWD/foo/bar",
 	}
 
 	staticFiles, err := New(config, testDirFile)
-	Equal(t, err, nil)
-	NotEqual(t, staticFiles, nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(staticFiles).NotTo(BeNil())
 
 	go func(sf *Files) {
 
@@ -191,113 +181,105 @@ func TestStaticNew(t *testing.T) {
 	time.Sleep(5000)
 
 	f, err := staticFiles.GetHTTPFile("/static/test-files/teststart/plainfile.txt")
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	fis, err := f.Readdir(-1)
-	NotEqual(t, err, nil)
-	Equal(t, err.Error(), "not a directory")
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(Equal("not a directory"))
 
 	fi, err := f.Stat()
-	Equal(t, err, nil)
-	Equal(t, fi.Name(), "plainfile.txt")
-	Equal(t, fi.Size(), int64(10))
-	Equal(t, fi.IsDir(), false)
-	Equal(t, fi.Mode(), os.FileMode(420))
-	Equal(t, fi.ModTime(), time.Unix(1446650128, 0))
-	NotEqual(t, fi.Sys(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(fi.Name()).To(Equal("plainfile.txt"))
+	g.Expect(fi.Size()).To(Equal(int64(10)))
+	g.Expect(fi.IsDir()).To(Equal(false))
+	g.Expect(fi.Mode()).To(Equal(os.FileMode(420)))
+	g.Expect(fi.ModTime()).To(Equal(time.Unix(1446650128, 0)))
+	g.Expect(fi.Sys()).NotTo(BeNil())
 
 	err = f.Close()
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	f, err = staticFiles.GetHTTPFile("/static/test-files/teststart")
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	fi, err = f.Stat()
-	Equal(t, err, nil)
-	Equal(t, fi.Name(), "teststart")
-	Equal(t, fi.Size(), int64(170))
-	Equal(t, fi.IsDir(), true)
-	Equal(t, fi.Mode(), os.FileMode(2147484141))
-	Equal(t, fi.ModTime(), time.Unix(1446650128, 0))
-	NotEqual(t, fi.Sys(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(fi.Name()).To(Equal("teststart"))
+	g.Expect(fi.Size()).To(Equal(int64(170)))
+	g.Expect(fi.IsDir()).To(Equal(true))
+	g.Expect(fi.Mode()).To(Equal(os.FileMode(2147484141)))
+	g.Expect(fi.ModTime()).To(Equal(time.Unix(1446650128, 0)))
+	g.Expect(fi.Sys()).NotTo(BeNil())
 
 	var j int
 
 	for err != io.EOF {
 
 		fis, err = f.Readdir(2)
-
-		switch j {
-		case 0:
-			Equal(t, len(fis), 2)
-		case 1:
-			Equal(t, len(fis), 1)
-		case 2:
-			Equal(t, len(fis), 0)
-		}
-
+		g.Expect(len(fis)).To(Equal(2 - j))
 		j++
 	}
 
 	err = f.Close()
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	b, err := staticFiles.ReadFile("/static/test-files/teststart/plainfile.txt")
-	Equal(t, err, nil)
-	Equal(t, string(b), "palindata\n")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(string(b)).To(Equal("palindata\n"))
 
 	b, err = staticFiles.ReadFile("nonexistantfile")
-	NotEqual(t, err, nil)
+	g.Expect(err).To(HaveOccurred())
 
 	bs, err := staticFiles.ReadFiles("/static/test-files/teststart", false)
-	Equal(t, err, nil)
-	Equal(t, len(bs), 2)
-	Equal(t, string(bs["/static/test-files/teststart/plainfile.txt"]), "palindata\n")
-	Equal(t, string(bs["/static/test-files/teststart/symlinkedfile.txt"]), "data\n")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(bs)).To(Equal(2))
+	g.Expect(string(bs["/static/test-files/teststart/plainfile.txt"])).To(Equal("palindata\n"))
+	g.Expect(string(bs["/static/test-files/teststart/symlinkedfile.txt"])).To(Equal("data\n"))
 
 	bs, err = staticFiles.ReadFiles("/static/test-files/teststart", true)
-	Equal(t, err, nil)
-	Equal(t, len(bs), 6)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(bs)).To(Equal(6))
 
 	bs, err = staticFiles.ReadFiles("nonexistantdir", false)
-	NotEqual(t, err, nil)
+	g.Expect(err).To(HaveOccurred())
 
 	fis, err = staticFiles.ReadDir("/static/test-files/teststart")
-	Equal(t, err, nil)
-	Equal(t, len(fis), 3)
-	Equal(t, fis[0].Name(), "plainfile.txt")
-	Equal(t, fis[1].Name(), "symlinkeddir")
-	Equal(t, fis[2].Name(), "symlinkedfile.txt")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(fis)).To(Equal(3))
+	g.Expect(fis[0].Name()).To(Equal("plainfile.txt"))
+	g.Expect(fis[1].Name()).To(Equal("symlinkeddir"))
+	g.Expect(fis[2].Name()).To(Equal("symlinkedfile.txt"))
 
 	fis, err = staticFiles.ReadDir("nonexistantdir")
-	NotEqual(t, err, nil)
+	g.Expect(err).To(HaveOccurred())
 
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", "http://127.0.0.1:3006/static/test-files/teststart/plainfile.txt", nil)
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	resp, err := client.Do(req)
-	Equal(t, err, nil)
-	Equal(t, resp.StatusCode, http.StatusOK)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	bytes, err := ioutil.ReadAll(resp.Body)
-	Equal(t, err, nil)
-	Equal(t, string(bytes), "palindata\n")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(string(bytes)).To(Equal("palindata\n"))
 
 	defer resp.Body.Close()
 }
 
 func TestLocalNew(t *testing.T) {
+	g := NewGomegaWithT(t)
 
 	config := &Config{
 		UseStaticFiles: false,
-		AbsPkgPath:     getGOPATH() + "/src/github.com/go-playground/statics",
+		AbsPkgPath:     "$PWD/..",
 	}
 
 	staticFiles, err := New(config, testDirFile)
-	Equal(t, err, nil)
-	NotEqual(t, staticFiles, nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(staticFiles).NotTo(BeNil())
 
 	go func(sf *Files) {
 
@@ -309,35 +291,35 @@ func TestLocalNew(t *testing.T) {
 	time.Sleep(5000)
 
 	f, err := staticFiles.GetHTTPFile("/static/test-files/teststart/plainfile.txt")
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	fis, err := f.Readdir(-1)
-	NotEqual(t, err, nil)
-	// Equal(t, err.Error(), "readdirent: invalid argument") // this is "not a directory" in linux but readdirent: invalid argument in osx
+	g.Expect(err).To(HaveOccurred())
+	// g.Expect(err.Error()).To(Equal("readdirent: invalid argument") // this is "not a directory" in linux but readdirent: invalid argument in osx
 
 	fi, err := f.Stat()
-	Equal(t, err, nil)
-	Equal(t, fi.Name(), "plainfile.txt")
-	// Equal(t, fi.Size(), int64(10))  // commented out as size can differ on different file systems when cloned
-	Equal(t, fi.IsDir(), false)
-	// Equal(t, fi.Mode(), os.FileMode(420)) // commented out as permissions can be different based on when & where you cloned
-	// Equal(t, fi.ModTime(), time.Unix(1446650128, 0)) // commented out as file mod times will be different based on when you cloned
-	NotEqual(t, fi.Sys(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(fi.Name()).To(Equal("plainfile.txt"))
+	// g.Expect(fi.Size()).To(Equal(int64(10))  // commented out as size can differ on different file systems when cloned
+	g.Expect(fi.IsDir()).To(Equal(false))
+	// g.Expect(fi.Mode()).To(Equal(os.FileMode(420)) // commented out as permissions can be different based on when & where you cloned
+	// g.Expect(fi.ModTime()).To(Equal(time.Unix(1446650128, 0)) // commented out as file mod times will be different based on when you cloned
+	g.Expect(fi.Sys()).NotTo(BeNil())
 
 	err = f.Close()
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	f, err = staticFiles.GetHTTPFile("/static/test-files/teststart")
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	fi, err = f.Stat()
-	Equal(t, err, nil)
-	Equal(t, fi.Name(), "teststart")
-	// Equal(t, fi.Size(), int64(170)) // commented out as size can differ on different file systems when cloned
-	Equal(t, fi.IsDir(), true)
-	// Equal(t, fi.Mode(), os.FileMode(2147484141))  // commented out as permissions can be different based on when & where you cloned
-	// Equal(t, fi.ModTime(), time.Unix(1446650128, 0))  // commented out as file mod times will be different based on when you cloned
-	NotEqual(t, fi.Sys(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(fi.Name()).To(Equal("teststart"))
+	// g.Expect(fi.Size()).To(Equal(int64(170)) // commented out as size can differ on different file systems when cloned
+	g.Expect(fi.IsDir()).To(Equal(true))
+	// g.Expect(fi.Mode()).To(Equal(os.FileMode(2147484141))  // commented out as permissions can be different based on when & where you cloned
+	// g.Expect(fi.ModTime()).To(Equal(time.Unix(1446650128, 0))  // commented out as file mod times will be different based on when you cloned
+	g.Expect(fi.Sys()).NotTo(BeNil())
 
 	var j int
 
@@ -347,74 +329,75 @@ func TestLocalNew(t *testing.T) {
 
 		switch j {
 		case 0:
-			Equal(t, len(fis), 2)
+			g.Expect(len(fis)).To(Equal(2))
 		case 1:
-			Equal(t, len(fis), 1)
+			g.Expect(len(fis)).To(Equal(1))
 		case 2:
-			Equal(t, len(fis), 0)
+			g.Expect(len(fis)).To(Equal(0))
 		}
 
 		j++
 	}
 
 	err = f.Close()
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	b, err := staticFiles.ReadFile("/static/test-files/teststart/plainfile.txt")
-	Equal(t, err, nil)
-	Equal(t, string(b), "palindata\n")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(string(b)).To(Equal("palindata\n"))
 
 	b, err = staticFiles.ReadFile("nonexistantfile")
-	NotEqual(t, err, nil)
+	g.Expect(err).To(HaveOccurred())
 
 	bs, err := staticFiles.ReadFiles("/static/test-files/teststart", false)
-	Equal(t, err, nil)
-	Equal(t, len(bs), 2)
-	Equal(t, string(bs["/static/test-files/teststart/plainfile.txt"]), "palindata\n")
-	Equal(t, string(bs["/static/test-files/teststart/symlinkedfile.txt"]), "data\n")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(bs)).To(Equal(2))
+	g.Expect(string(bs["/static/test-files/teststart/plainfile.txt"])).To(Equal("palindata\n"))
+	g.Expect(string(bs["/static/test-files/teststart/symlinkedfile.txt"])).To(Equal("data\n"))
 
 	bs, err = staticFiles.ReadFiles("/static/test-files/teststart", true)
-	Equal(t, err, nil)
-	Equal(t, len(bs), 6)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(bs)).To(Equal(6))
 
 	bs, err = staticFiles.ReadFiles("nonexistantdir", false)
-	NotEqual(t, err, nil)
+	g.Expect(err).To(HaveOccurred())
 
 	fis, err = staticFiles.ReadDir("/static/test-files/teststart")
-	Equal(t, err, nil)
-	Equal(t, len(fis), 3)
-	Equal(t, fis[0].Name(), "plainfile.txt")
-	Equal(t, fis[1].Name(), "symlinkeddir")
-	Equal(t, fis[2].Name(), "symlinkedfile.txt")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(len(fis)).To(Equal(3))
+	g.Expect(fis[0].Name()).To(Equal("plainfile.txt"))
+	g.Expect(fis[1].Name()).To(Equal("symlinkeddir"))
+	g.Expect(fis[2].Name()).To(Equal("symlinkedfile.txt"))
 
 	fis, err = staticFiles.ReadDir("nonexistantdir")
-	NotEqual(t, err, nil)
+	g.Expect(err).To(HaveOccurred())
 
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", "http://127.0.0.1:3007/static/test-files/teststart/plainfile.txt", nil)
-	Equal(t, err, nil)
+	g.Expect(err).NotTo(HaveOccurred())
 
 	resp, err := client.Do(req)
-	Equal(t, err, nil)
-	Equal(t, resp.StatusCode, http.StatusOK)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	bytes, err := ioutil.ReadAll(resp.Body)
-	Equal(t, err, nil)
-	Equal(t, string(bytes), "palindata\n")
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(string(bytes)).To(Equal("palindata\n"))
 
 	defer resp.Body.Close()
 }
 
 func TestBadLocalAbsPath(t *testing.T) {
+	g := NewGomegaWithT(t)
 
 	config := &Config{
 		UseStaticFiles: false,
-		AbsPkgPath:     "../github.com/go-playground/statics",
+		AbsPkgPath:     "../github.com/rickb777/statics",
 	}
 
 	staticFiles, err := New(config, testDirFile)
-	NotEqual(t, err, nil)
-	Equal(t, err.Error(), "AbsPkgPath is required when not using static files otherwise the static package has no idea where to grab local files from when your package is used from within another package.")
-	Equal(t, staticFiles, nil)
+	g.Expect(err).To(HaveOccurred())
+	g.Expect(err.Error()).To(Equal("AbsPkgPath is required when not using static files otherwise the static package has no idea where to grab local files from when your package is used from within another package."))
+	g.Expect(staticFiles).To(BeNil())
 }

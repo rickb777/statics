@@ -3,8 +3,8 @@ Package statics
 
 ![Project status](https://img.shields.io/badge/version-1.7.0-green.svg)
 [![Build Status](https://semaphoreci.com/api/v1/projects/1b97afa9-77f3-43ff-ad26-749958500745/601363/badge.svg)](https://semaphoreci.com/joeybloggs/statics)
-[![Go Report Card](http://goreportcard.com/badge/go-playground/statics)](http://goreportcard.com/report/go-playground/statics)
-[![GoDoc](https://godoc.org/github.com/go-playground/statics/static?status.svg)](https://godoc.org/github.com/go-playground/statics/static)
+[![Go Report Card](http://goreportcard.com/badge/rickb777/statics)](http://goreportcard.com/report/rickb777/statics)
+[![GoDoc](https://godoc.org/github.com/rickb777/statics/static?status.svg)](https://godoc.org/github.com/rickb777/statics/static)
 ![License](https://img.shields.io/dub/l/vibe-d.svg)
 
 Package statics embeds static files into your go applications. It provides helper methods and objects to retrieve embeded files and serve via http.
@@ -20,17 +20,17 @@ Installation
 ------------
 
 ```shell
-	go get -u github.com/go-playground/statics
+	go get -u github.com/rickb777/statics
 ```
 
 Then import the statics package into your own code.
 
-	import "github.com/go-playground/statics"
+	import "github.com/rickb777/statics"
 
 Usage and documentation
 ------
 
-Please see https://godoc.org/github.com/go-playground/statics/static for detailed usage docs.
+Please see https://godoc.org/github.com/rickb777/statics/static for detailed usage docs.
 
 NOTE: when specifying path or directory name in code always use "/", even for you windows users,
      the package handles any conversion to you local filesystem paths; Except for the AbsPkgPath
@@ -50,7 +50,7 @@ Output:
 
 package main
 
-import "github.com/go-playground/statics/static"
+import "github.com/rickb777/statics/static"
 
 // newStaticAssets initializes a new *static.Files instance for use
 func newStaticAssets(config *static.Config) (*static.Files, error) {
@@ -65,7 +65,7 @@ git update-index --assume-unchanged [filename(s)] and then when ready for genera
 just run go generate from the project root and the files will get embedded ready for 
 compilation.
 
-Be sure to check out this packages best buddy https://github.com/go-playground/generate
+Be sure to check out this packages best buddy https://github.com/rickb777/generate
 to help get everything generated and ready for compilation.
 
 Example Usage

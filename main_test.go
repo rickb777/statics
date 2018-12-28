@@ -2,33 +2,13 @@ package main
 
 import (
 	"io/ioutil"
-	"os"
 	"testing"
 
-	. "gopkg.in/go-playground/assert.v1"
+	. "github.com/onsi/gomega"
 )
 
-// NOTES:
-// - Run "go test" to run tests
-// - Run "gocov test | gocov report" to report on test converage by file
-// - Run "gocov test | gocov annotate -" to report on all code and functions, those ,marked with "MISS" were never called
-//
-// or
-//
-// -- may be a good idea to change to output path to somewherelike /tmp
-// go test -coverprofile cover.out && go tool cover -html=cover.out -o cover.html
-//
-
-func TestMain(m *testing.M) {
-
-	// setup
-
-	os.Exit(m.Run())
-
-	// teardown
-}
-
-func TestNonExistantStaticDir(t *testing.T) {
+func TestNonExistentStaticDir(t *testing.T) {
+	g := NewGomegaWithT(t)
 
 	i := "static/test-files/garbagedir"
 	flagStaticDir = &i
@@ -39,8 +19,8 @@ func TestNonExistantStaticDir(t *testing.T) {
 	p := "test"
 	flagPkg = &p
 
-	g := "Assets"
-	flagGroup = &g
+	gr := "Assets"
+	flagGroup = &gr
 
 	ignore := ""
 	flagIgnore = &ignore
@@ -51,10 +31,11 @@ func TestNonExistantStaticDir(t *testing.T) {
 	init := false
 	flagInit = &init
 
-	PanicMatches(t, func() { main() }, "stat static/test-files/garbagedir: no such file or directory")
+	g.Expect(func() { main() }).To(Panic(), "stat static/test-files/garbagedir: no such file or directory")
 }
 
 func TestBadPackage(t *testing.T) {
+	g := NewGomegaWithT(t)
 
 	i := "static/test-files/test-inner"
 	flagStaticDir = &i
@@ -65,16 +46,17 @@ func TestBadPackage(t *testing.T) {
 	p := ""
 	flagPkg = &p
 
-	g := "Assets"
-	flagGroup = &g
+	gr := "Assets"
+	flagGroup = &gr
 
 	init := false
 	flagInit = &init
 
-	PanicMatches(t, func() { main() }, "**invalid Package Name")
+	g.Expect(main).To(Panic(), "**invalid Package Name")
 }
 
 func TestBadOutputDir(t *testing.T) {
+	g := NewGomegaWithT(t)
 
 	i := "static/test-files/test-inner"
 	flagStaticDir = &i
@@ -85,16 +67,17 @@ func TestBadOutputDir(t *testing.T) {
 	p := "test"
 	flagPkg = &p
 
-	g := "Assets"
-	flagGroup = &g
+	gr := "Assets"
+	flagGroup = &gr
 
 	init := false
 	flagInit = &init
 
-	PanicMatches(t, func() { main() }, "**invalid Output Directory")
+	g.Expect(main).To(Panic(), "**invalid Output Directory")
 }
 
 func TestBadStaticDir(t *testing.T) {
+	g := NewGomegaWithT(t)
 
 	i := ""
 	flagStaticDir = &i
@@ -105,16 +88,17 @@ func TestBadStaticDir(t *testing.T) {
 	p := "test"
 	flagPkg = &p
 
-	g := "Assets"
-	flagGroup = &g
+	gr := "Assets"
+	flagGroup = &gr
 
 	init := false
 	flagInit = &init
 
-	PanicMatches(t, func() { main() }, "**invalid Static File Directoy '.'")
+	g.Expect(main).To(Panic(), "**invalid Static File Directoy '.'")
 }
 
 func TestGenerateInitFile(t *testing.T) {
+	g := NewGomegaWithT(t)
 
 	i := "static/test-files/teststart"
 	flagStaticDir = &i
@@ -125,8 +109,8 @@ func TestGenerateInitFile(t *testing.T) {
 	p := "test"
 	flagPkg = &p
 
-	g := "Assets"
-	flagGroup = &g
+	gr := "Assets"
+	flagGroup = &gr
 
 	init := true
 	flagInit = &init
@@ -134,13 +118,13 @@ func TestGenerateInitFile(t *testing.T) {
 	main()
 
 	b, err := ioutil.ReadFile("static/test-files/test.go")
-	Equal(t, err, nil)
+	g.Expect(err, nil)
 
 	expected := `//go:generate statics -i=static/test-files/teststart -o=static/test-files/test.go -pkg=test -group=Assets
 
 package test
 
-import "github.com/go-playground/statics/static"
+import "github.com/rickb777/statics/static"
 
 // newStaticAssets initializes a new *static.Files instance for use
 func newStaticAssets(config *static.Config) (*static.Files, error) {
@@ -149,12 +133,11 @@ func newStaticAssets(config *static.Config) (*static.Files, error) {
 }
 `
 
-	Equal(t, string(b), expected)
+	g.Expect(string(b), expected)
 }
 
 func TestIgnore(t *testing.T) {
-
-	Equal(t, true, true)
+	g := NewGomegaWithT(t)
 
 	i := "static/test-files/teststart"
 	flagStaticDir = &i
@@ -165,8 +148,8 @@ func TestIgnore(t *testing.T) {
 	p := "test"
 	flagPkg = &p
 
-	g := "Assets"
-	flagGroup = &g
+	gr := "Assets"
+	flagGroup = &gr
 
 	ignore := ".*.txt"
 	flagIgnore = &ignore
@@ -177,12 +160,11 @@ func TestIgnore(t *testing.T) {
 	init := false
 	flagInit = &init
 
-	main()
+	g.Expect(main).NotTo(Panic())
 }
 
 func TestBadIgnore(t *testing.T) {
-
-	Equal(t, true, true)
+	g := NewGomegaWithT(t)
 
 	i := "static/test-files/teststart"
 	flagStaticDir = &i
@@ -193,8 +175,8 @@ func TestBadIgnore(t *testing.T) {
 	p := "test"
 	flagPkg = &p
 
-	g := "Assets"
-	flagGroup = &g
+	gr := "Assets"
+	flagGroup = &gr
 
 	ignore := "([12.gitignore"
 	flagIgnore = &ignore
@@ -205,12 +187,11 @@ func TestBadIgnore(t *testing.T) {
 	init := false
 	flagInit = &init
 
-	PanicMatches(t, func() { main() }, "**Error Compiling Regex:error parsing regexp: missing closing ]: `[12.gitignore`")
+	g.Expect(main, "**Error Compiling Regex:error parsing regexp: missing closing ]: `[12.gitignore`")
 }
 
 func TestGenerateFilePrefix(t *testing.T) {
-
-	Equal(t, true, true)
+	g := NewGomegaWithT(t)
 
 	i := "static/test-files/teststart"
 	flagStaticDir = &i
@@ -221,8 +202,8 @@ func TestGenerateFilePrefix(t *testing.T) {
 	p := "test"
 	flagPkg = &p
 
-	g := "Assets"
-	flagGroup = &g
+	gr := "Assets"
+	flagGroup = &gr
 
 	ignore := ""
 	flagIgnore = &ignore
@@ -233,12 +214,11 @@ func TestGenerateFilePrefix(t *testing.T) {
 	init := false
 	flagInit = &init
 
-	main()
+	g.Expect(main).NotTo(Panic())
 }
 
 func TestGenerateFile(t *testing.T) {
-
-	Equal(t, true, true)
+	g := NewGomegaWithT(t)
 
 	i := "static/test-files/teststart"
 	flagStaticDir = &i
@@ -249,8 +229,8 @@ func TestGenerateFile(t *testing.T) {
 	p := "test"
 	flagPkg = &p
 
-	g := "Assets"
-	flagGroup = &g
+	gr := "Assets"
+	flagGroup = &gr
 
 	ignore := ""
 	flagIgnore = &ignore
@@ -261,5 +241,5 @@ func TestGenerateFile(t *testing.T) {
 	init := false
 	flagInit = &init
 
-	main()
+	g.Expect(main).NotTo(Panic())
 }
