@@ -174,7 +174,8 @@ func TestStaticNew(t *testing.T) {
 	go func(sf *Files) {
 
 		http.Handle("/static/", http.StripPrefix("/", http.FileServer(sf.FS())))
-		http.ListenAndServe("127.0.0.1:13006", nil)
+		e2 := http.ListenAndServe("127.0.0.1:13006", nil)
+		g.Expect(e2).NotTo(HaveOccurred())
 
 	}(staticFiles)
 
@@ -283,7 +284,8 @@ func TestLocalNew(t *testing.T) {
 	go func(sf *Files) {
 
 		http.Handle("/static/test-files/", http.StripPrefix("/", http.FileServer(sf.FS())))
-		http.ListenAndServe("127.0.0.1:13007", nil)
+		e2 := http.ListenAndServe("127.0.0.1:13007", nil)
+		g.Expect(e2).NotTo(HaveOccurred())
 
 	}(staticFiles)
 
