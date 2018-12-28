@@ -4,8 +4,7 @@ go:
   - 1.11
 
 install:
-  - go get -t -v ./...
-  - go get github.com/mattn/goveralls
+  - go get -t -v . ./static
 
 script:
   - go test -v . ./static
