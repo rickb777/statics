@@ -174,7 +174,7 @@ func TestStaticNew(t *testing.T) {
 	go func(sf *Files) {
 
 		http.Handle("/static/", http.StripPrefix("/", http.FileServer(sf.FS())))
-		http.ListenAndServe("127.0.0.1:3006", nil)
+		http.ListenAndServe("127.0.0.1:13006", nil)
 
 	}(staticFiles)
 
@@ -214,9 +214,8 @@ func TestStaticNew(t *testing.T) {
 	var j int
 
 	for err != io.EOF {
-
 		fis, err = f.Readdir(2)
-		g.Expect(len(fis)).To(Equal(2 - j))
+		g.Expect(fis).To(HaveLen(2 - j))
 		j++
 	}
 
@@ -255,7 +254,7 @@ func TestStaticNew(t *testing.T) {
 
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:3006/static/test-files/teststart/plainfile.txt", nil)
+	req, err := http.NewRequest("GET", "http://127.0.0.1:13006/static/test-files/teststart/plainfile.txt", nil)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	resp, err := client.Do(req)
@@ -284,7 +283,7 @@ func TestLocalNew(t *testing.T) {
 	go func(sf *Files) {
 
 		http.Handle("/static/test-files/", http.StripPrefix("/", http.FileServer(sf.FS())))
-		http.ListenAndServe("127.0.0.1:3007", nil)
+		http.ListenAndServe("127.0.0.1:13007", nil)
 
 	}(staticFiles)
 
@@ -324,18 +323,8 @@ func TestLocalNew(t *testing.T) {
 	var j int
 
 	for err != io.EOF {
-
 		fis, err = f.Readdir(2)
-
-		switch j {
-		case 0:
-			g.Expect(len(fis)).To(Equal(2))
-		case 1:
-			g.Expect(len(fis)).To(Equal(1))
-		case 2:
-			g.Expect(len(fis)).To(Equal(0))
-		}
-
+		g.Expect(fis).To(HaveLen(2 - j))
 		j++
 	}
 
@@ -374,7 +363,7 @@ func TestLocalNew(t *testing.T) {
 
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", "http://127.0.0.1:3007/static/test-files/teststart/plainfile.txt", nil)
+	req, err := http.NewRequest("GET", "http://127.0.0.1:13007/static/test-files/teststart/plainfile.txt", nil)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	resp, err := client.Do(req)
