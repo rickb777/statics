@@ -1,0 +1,10 @@
+language: go
+
+go:
+  - 1.11
+
+install:
+  - go mod download
+
+script:
+  - go test -v . ./static
