@@ -4,7 +4,8 @@ go:
   - 1.11
 
 install:
-  - go mod download || echo download failed.
+  - go get -t -v ./...
+  - go get github.com/mattn/goveralls
 
 script:
   - go test -v . ./static
