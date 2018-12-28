@@ -174,12 +174,12 @@ func TestStaticNew(t *testing.T) {
 	go func(sf *Files) {
 
 		http.Handle("/static/", http.StripPrefix("/", http.FileServer(sf.FS())))
-		e2 := http.ListenAndServe("127.0.0.1:13006", nil)
+		e2 := http.ListenAndServe(":13006", nil)
 		g.Expect(e2).NotTo(HaveOccurred())
 
 	}(staticFiles)
 
-	time.Sleep(5000)
+	time.Sleep(1000)
 
 	f, err := staticFiles.GetHTTPFile("/static/test-files/teststart/plainfile.txt")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -227,7 +227,7 @@ func TestStaticNew(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(string(b)).To(Equal("palindata\n"))
 
-	b, err = staticFiles.ReadFile("nonexistantfile")
+	b, err = staticFiles.ReadFile("nonexistentfile")
 	g.Expect(err).To(HaveOccurred())
 
 	bs, err := staticFiles.ReadFiles("/static/test-files/teststart", false)
@@ -284,12 +284,12 @@ func TestLocalNew(t *testing.T) {
 	go func(sf *Files) {
 
 		http.Handle("/static/test-files/", http.StripPrefix("/", http.FileServer(sf.FS())))
-		e2 := http.ListenAndServe("127.0.0.1:13007", nil)
+		e2 := http.ListenAndServe(":13007", nil)
 		g.Expect(e2).NotTo(HaveOccurred())
 
 	}(staticFiles)
 
-	time.Sleep(5000)
+	time.Sleep(1000)
 
 	f, err := staticFiles.GetHTTPFile("/static/test-files/teststart/plainfile.txt")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -337,7 +337,7 @@ func TestLocalNew(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(string(b)).To(Equal("palindata\n"))
 
-	b, err = staticFiles.ReadFile("nonexistantfile")
+	b, err = staticFiles.ReadFile("nonexistentfile")
 	g.Expect(err).To(HaveOccurred())
 
 	bs, err := staticFiles.ReadFiles("/static/test-files/teststart", false)
